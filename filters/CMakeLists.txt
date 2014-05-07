@@ -39,6 +39,8 @@ if(build)
         src/grid_minimum.cpp
         src/morphological_filter.cpp
         src/local_maximum.cpp
+        src/local_modify.cpp
+        src/local_modify_omp.cpp
         )
 
     set(incs
@@ -77,6 +79,8 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/grid_minimum.h"
         "include/pcl/${SUBSYS_NAME}/morphological_filter.h"
         "include/pcl/${SUBSYS_NAME}/local_maximum.h"
+        "include/pcl/${SUBSYS_NAME}/local_modify.h"
+        "include/pcl/${SUBSYS_NAME}/local_modify_omp.h"
         )
 
     set(impl_incs
@@ -112,6 +116,8 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/impl/grid_minimum.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/morphological_filter.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/local_maximum.hpp"
+        "include/pcl/${SUBSYS_NAME}/impl/local_modify.hpp"
+        "include/pcl/${SUBSYS_NAME}/impl/local_modify_omp.hpp"
         )
 
     set(LIB_NAME "pcl_${SUBSYS_NAME}")
