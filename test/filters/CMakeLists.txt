@@ -30,3 +30,7 @@ PCL_ADD_TEST(filters_local_maximum test_filters_local_maximum
 PCL_ADD_TEST(filters_local_min_max test_filters_local_min_max
              FILES test_local_min_max.cpp
              LINK_WITH pcl_gtest pcl_common pcl_filters)
+
+PCL_ADD_TEST(filters_local_min_max_benchmark test_filters_local_min_max_benchmark
+             FILES test_local_min_max_benchmark.cpp
+             LINK_WITH pcl_gtest pcl_common pcl_filters)

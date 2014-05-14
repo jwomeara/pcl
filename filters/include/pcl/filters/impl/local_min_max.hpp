@@ -300,7 +300,7 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
 
   // rotate each of the projected points into the xy plane
   #ifdef _OPENMP
-  #pragma omp parallel for num_threads (threads_)
+  #pragma omp parallel for num_threads (threads_) schedule (dynamic)
   #endif
   for (int i = 0; i < cloud_projected->size(); i++)
   {
@@ -348,18 +348,10 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
 
   float half_res = resolution_ / 2.0f;
 
-  #ifdef _OPENMP
-  omp_lock_t search_lock;
-  omp_init_lock(&search_lock);
-
-  omp_lock_t index_lock;
-  omp_init_lock(&index_lock);
-  #endif
-
   // Find all points within bounds (e.g. radius, box, KNN) of the query
   // point, removing those that are locally minimal/maximal
   #ifdef _OPENMP
-  #pragma omp parallel for num_threads (threads_)
+  #pragma omp parallel for num_threads (threads_) schedule (dynamic)
   #endif
   for (int iii = 0; iii < static_cast<int> (indices_->size ()); ++iii)
   {
@@ -401,17 +393,7 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
       bbox_min = Eigen::Vector3f (minx, miny, minz);
       bbox_max = Eigen::Vector3f (maxx, maxy, maxz);
 
-      #ifdef _OPENMP
-      omp_set_lock(&search_lock);
-      #endif
-      
-      int num_points = octree_->boxSearch (bbox_min, bbox_max, result_indices);
-      
-      #ifdef _OPENMP
-      omp_unset_lock(&search_lock);
-      #endif
-
-      if (num_points == 0)
+      if (octree_->boxSearch (bbox_min, bbox_max, result_indices) == 0)
       {
         PCL_WARN ("[pcl::%s::applyFilter] Searching for neighbors with resolution %f failed.\n", getClassName ().c_str (), resolution_);
         continue;
@@ -419,18 +401,7 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
     }
     else if (locality_type_ == LT_RADIUS)
     {
-
-      #ifdef _OPENMP
-      omp_set_lock(&search_lock);
-      #endif
-
-      int num_points = searcher_->radiusSearch (p, radius_, result_indices, result_dists);
-
-      #ifdef _OPENMP
-      omp_unset_lock(&search_lock);
-      #endif
-
-      if (num_points == 0)
+      if (searcher_->radiusSearch (p, radius_, result_indices, result_dists) == 0)
       {
         PCL_WARN ("[pcl::%s::applyFilter] Searching for neighbors within radius %f failed.\n", getClassName ().c_str (), radius_);
         continue;
@@ -438,18 +409,7 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
     }
     else if (locality_type_ == LT_KNN)
     {
-
-      #ifdef _OPENMP
-      omp_set_lock(&search_lock);
-      #endif
-
-      int num_points = searcher_->nearestKSearch (p, num_neighbors_+1, result_indices, result_dists);
-      
-      #ifdef _OPENMP
-      omp_unset_lock(&search_lock);
-      #endif
-
-      if (num_points == 0)
+      if (searcher_->nearestKSearch (p, num_neighbors_+1, result_indices, result_dists) == 0)
       {
         PCL_WARN ("[pcl::%s::applyFilter] Searching for %d nearest neighbors failed.\n", getClassName ().c_str (), num_neighbors_);
         continue;
@@ -510,30 +470,19 @@ pcl::LocalMinMax<PointT>::applyLocalFilter (std::vector<int> &indices)
     {
       if (extract_removed_indices_)
       {
-
-        #ifdef _OPENMP
-        omp_set_lock(&index_lock);
-        #endif
-
-        (*removed_indices_)[rii++] = (*indices_)[iii];
-
-        #ifdef _OPENMP
-        omp_unset_lock(&index_lock);
-        #endif
+        #pragma omp critical
+        {
+          (*removed_indices_)[rii++] = (*indices_)[iii];
+        }
       }
       continue;
     }
 
     // Otherwise it was a normal point for output (inlier)
-    #ifdef _OPENMP
-    omp_set_lock(&index_lock);
-    #endif
-
-    indices[oii++] = (*indices_)[iii];
-
-    #ifdef _OPENMP
-    omp_unset_lock(&index_lock);
-    #endif
+    #pragma omp critical
+    {
+      indices[oii++] = (*indices_)[iii];
+    }
   }
 
   // Resize the output arrays
