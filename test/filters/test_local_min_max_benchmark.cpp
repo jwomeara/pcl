@@ -97,40 +97,40 @@ TEST (Box, Minimum)
 
   double time_small_serial = start_small_2t - start_small_serial;
 
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, Serial: [Runtime: %.3f]\n", time_small_serial);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, Serial: [Runtime: %.3fs]\n", time_small_serial);
 
   double time_small_2t = start_small_4t - start_small_2t;
   double speedup_small_2t = time_small_serial / time_small_2t;
   double overhead_small_2t = 2.0 * time_small_2t - time_small_serial;
   double efficiency_small_2t = speedup_small_2t / 2.0;
 
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
 
   double time_small_4t = start_large_serial - start_small_4t;
   double speedup_small_4t = time_small_serial / time_small_4t;
   double overhead_small_4t = 4.0 * time_small_4t - time_small_serial;
   double efficiency_small_4t = speedup_small_4t / 4.0;
 
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 1, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
 
 
   double time_large_serial = start_large_2t - start_large_serial;
 
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, Serial: [Runtime: %.3f]\n", time_large_serial);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, Serial: [Runtime: %.3fs]\n", time_large_serial);
 
   double time_large_2t = start_large_4t - start_large_2t;
   double speedup_large_2t = time_large_serial / time_large_2t;
   double overhead_large_2t = 2.0 * time_large_2t - time_large_serial;
   double efficiency_large_2t = speedup_large_2t / 2.0;
 
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
 
   double time_large_4t = stop - start_large_4t;
   double speedup_large_4t = time_large_serial / time_large_4t;
   double overhead_large_4t = 4.0 * time_large_4t - time_large_serial;
   double efficiency_large_4t = speedup_large_4t / 4.0;
   
-  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
+  PCL_ALWAYS ("[Box, Minimum] Resolution: 50, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,40 +180,40 @@ TEST (Radius, Minimum)
 
   double time_small_serial = start_small_2t - start_small_serial;
 
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, Serial: [Runtime: %.3f]\n", time_small_serial);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, Serial: [Runtime: %.3fs]\n", time_small_serial);
 
   double time_small_2t = start_small_4t - start_small_2t;
   double speedup_small_2t = time_small_serial / time_small_2t;
   double overhead_small_2t = 2.0 * time_small_2t - time_small_serial;
   double efficiency_small_2t = speedup_small_2t / 2.0;
 
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
 
   double time_small_4t = start_large_serial - start_small_4t;
   double speedup_small_4t = time_small_serial / time_small_4t;
   double overhead_small_4t = 4.0 * time_small_4t - time_small_serial;
   double efficiency_small_4t = speedup_small_4t / 4.0;
 
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 0.5, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
 
 
   double time_large_serial = start_large_2t - start_large_serial;
 
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, Serial: [Runtime: %.3f]\n", time_large_serial);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, Serial: [Runtime: %.3fs]\n", time_large_serial);
 
   double time_large_2t = start_large_4t - start_large_2t;
   double speedup_large_2t = time_large_serial / time_large_2t;
   double overhead_large_2t = 2.0 * time_large_2t - time_large_serial;
   double efficiency_large_2t = speedup_large_2t / 2.0;
 
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
 
   double time_large_4t = stop - start_large_4t;
   double speedup_large_4t = time_large_serial / time_large_4t;
   double overhead_large_4t = 4.0 * time_large_4t - time_large_serial;
   double efficiency_large_4t = speedup_large_4t / 4.0;
   
-  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
+  PCL_ALWAYS ("[Radius, Minimum] Radius: 25, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,40 +263,40 @@ TEST (KNN, Minimum)
 
   double time_small_serial = start_small_2t - start_small_serial;
 
-  PCL_ALWAYS ("[KNN, Minimum] NN: 50, Serial: [Runtime: %.3f]\n", time_small_serial);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 50, Serial: [Runtime: %.3fs]\n", time_small_serial);
 
   double time_small_2t = start_small_4t - start_small_2t;
   double speedup_small_2t = time_small_serial / time_small_2t;
   double overhead_small_2t = 2.0 * time_small_2t - time_small_serial;
   double efficiency_small_2t = speedup_small_2t / 2.0;
 
-  PCL_ALWAYS ("[KNN, Minimum] NN: 50, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 50, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
 
   double time_small_4t = start_large_serial - start_small_4t;
   double speedup_small_4t = time_small_serial / time_small_4t;
   double overhead_small_4t = 4.0 * time_small_4t - time_small_serial;
   double efficiency_small_4t = speedup_small_4t / 4.0;
 
-  PCL_ALWAYS ("[KNN, Minimum] NN: 50, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 50, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
 
 
   double time_large_serial = start_large_2t - start_large_serial;
 
-  PCL_ALWAYS ("[KNN, Minimum] NN: 500, Serial: [Runtime: %.3f]\n", time_large_serial);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 500, Serial: [Runtime: %.3fs]\n", time_large_serial);
 
   double time_large_2t = start_large_4t - start_large_2t;
   double speedup_large_2t = time_large_serial / time_large_2t;
   double overhead_large_2t = 2.0 * time_large_2t - time_large_serial;
   double efficiency_large_2t = speedup_large_2t / 2.0;
 
-  PCL_ALWAYS ("[KNN, Minimum] NN: 500, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 500, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
 
   double time_large_4t = stop - start_large_4t;
   double speedup_large_4t = time_large_serial / time_large_4t;
   double overhead_large_4t = 4.0 * time_large_4t - time_large_serial;
   double efficiency_large_4t = speedup_large_4t / 4.0;
   
-  PCL_ALWAYS ("[KNN, Minimum] NN: 500, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
+  PCL_ALWAYS ("[KNN, Minimum] NN: 500, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,40 +346,40 @@ TEST (Grid, Minimum)
 
   double time_small_serial = start_small_2t - start_small_serial;
 
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, Serial: [Runtime: %.3f]\n", time_small_serial);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, Serial: [Runtime: %.3fs]\n", time_small_serial);
 
   double time_small_2t = start_small_4t - start_small_2t;
   double speedup_small_2t = time_small_serial / time_small_2t;
   double overhead_small_2t = 2.0 * time_small_2t - time_small_serial;
   double efficiency_small_2t = speedup_small_2t / 2.0;
 
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_2t, speedup_small_2t, overhead_small_2t, efficiency_small_2t);
 
   double time_small_4t = start_large_serial - start_small_4t;
   double speedup_small_4t = time_small_serial / time_small_4t;
   double overhead_small_4t = 4.0 * time_small_4t - time_small_serial;
   double efficiency_small_4t = speedup_small_4t / 4.0;
 
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 1, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_small_4t, speedup_small_4t, overhead_small_4t, efficiency_small_4t);
 
 
   double time_large_serial = start_large_2t - start_large_serial;
 
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, Serial: [Runtime: %.3f]\n", time_large_serial);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, Serial: [Runtime: %.3fs]\n", time_large_serial);
 
   double time_large_2t = start_large_4t - start_large_2t;
   double speedup_large_2t = time_large_serial / time_large_2t;
   double overhead_large_2t = 2.0 * time_large_2t - time_large_serial;
   double efficiency_large_2t = speedup_large_2t / 2.0;
 
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, 2 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, 2 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_2t, speedup_large_2t, overhead_large_2t, efficiency_large_2t);
 
   double time_large_4t = stop - start_large_4t;
   double speedup_large_4t = time_large_serial / time_large_4t;
   double overhead_large_4t = 4.0 * time_large_4t - time_large_serial;
   double efficiency_large_4t = speedup_large_4t / 4.0;
   
-  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, 4 Threads: [Runtime: %.3f, Speedup: %.3f, Overhead: %.3f, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
+  PCL_ALWAYS ("[Grid, Minimum] Resolution: 50, 4 Threads: [Runtime: %.3fs, Speedup: %.3f, Overhead: %.3fs, Efficiency: %.3f]\n", time_large_4t, speedup_large_4t, overhead_large_4t, efficiency_large_4t);
 }
 
 /* ---[ */
