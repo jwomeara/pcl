@@ -31,3 +31,6 @@ PCL_ADD_TEST(filters_local_modify test_filters_local_modify
              FILES test_local_modify.cpp
              LINK_WITH pcl_gtest pcl_common pcl_filters)
 
+PCL_ADD_TEST(filters_local_modify_benchmark test_filters_local_modify_benchmark
+             FILES test_local_modify_benchmark.cpp
+             LINK_WITH pcl_gtest pcl_common pcl_filters)
