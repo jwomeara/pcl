@@ -52,195 +52,220 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
     PointCloudSource &output, const Matrix4 &guess)
 {
   
-  int dimensions = target_->width; // x, y, z
-  int input_length = indices_->size (); // M
-  int target_length = target_->points.size (); // N
+  int dimensions = 3; // x, y, z
+  int input_length = (int) indices_->size (); // M
+  int target_length = (int) target_->points.size (); // N
 
   // convert input data to eigen data
-  Eigen::MatrixXf input_matrix (input_length, dimensions);
-  Eigen::MatrixXf output_matrix (input_length, dimensions);
-  Eigen::MatrixXf target_matrix (target_length, dimensions);
+  Eigen::MatrixXf input_matrix (dimensions, input_length);
+  Eigen::MatrixXf input_centered (dimensions, input_length);
+  Eigen::MatrixXf output_matrix (dimensions, input_length);
+  Eigen::MatrixXf target_matrix (dimensions, input_length);
 
   // copy the input data to the intput and output matrices
   for (int i = 0; i < input_length; ++i)
   {
-    input_matrix (i, 0) = output_matrix (i, 0) = input_->points[(*indices_)[i]].x;
-    input_matrix (i, 1) = output_matrix (i, 1) = input_->points[(*indices_)[i]].y;
-    input_matrix (i, 2) = output_matrix (i, 2) = input_->points[(*indices_)[i]].z;
+    input_matrix (0, i) = output_matrix (0, i) = input_->points[(*indices_)[i]].x;
+    input_matrix (1, i) = output_matrix (1, i) = input_->points[(*indices_)[i]].y;
+    input_matrix (2, i) = output_matrix (2, i) = input_->points[(*indices_)[i]].z;
   }
 
   // copy the target data
   for (int i = 0; i < target_length; ++i)
   {
-    target_matrix (i, 0) = target_->points[i].x;
-    target_matrix (i, 1) = target_->points[i].y;
-    target_matrix (i, 2) = target_->points[i].z;
+    target_matrix (0, i) = target_->points[i].x;
+    target_matrix (1, i) = target_->points[i].y;
+    target_matrix (2, i) = target_->points[i].z;
+  }
+
+  Eigen::MatrixXf input_mean (dimensions, dimensions);
+  Eigen::MatrixXf target_mean (dimensions, dimensions);
+  input_mean.setZero ();
+  target_mean.setZero ();
+
+  float input_scale = 1.0f;
+  float target_scale = 1.0f;
+
+  // normalize to zero mean and unit variance
+  if (normalize_)
+  {
+    input_mean = input_matrix.rowwise ().mean ();
+    Eigen::MatrixXf target_mean = target_matrix.rowwise ().mean ();
+
+    input_matrix = input_matrix - input_mean.replicate (1, input_length);
+    target_matrix = target_matrix - target_mean.replicate (1, target_length);
+
+    input_scale = std::sqrt (input_matrix.array ().square ().matrix ().sum () / input_length);
+    target_scale = std::sqrt (target_matrix.array ().square ().matrix ().sum () / target_length);
+
+    input_matrix = input_matrix / input_scale;
+    target_matrix = target_matrix / target_scale;
   }
 
   // initialization stuff
   if (sigma_squared_ <= 0)
   {
-    float input_trace = (input_matrix.transpose () * input_matrix).trace ();
-    float target_trace = (target_matrix.transpose() * target_matrix).trace ();
+    float input_trace = (input_matrix * input_matrix.transpose ()).trace ();
+    float target_trace = (target_matrix * target_matrix.transpose ()).trace ();
 
-    sigma_squared = (input_length * target_trace + target_length * input_trace - 2.0f * (target_matrix.sum () * (input_matrix.sum ()).transpose ())) / (input_length * target_length * dimensions)
+    sigma_squared_ = (input_length * target_trace + target_length * input_trace - (2.0f * target_matrix.colwise ().sum () * input_matrix.colwise ().sum ().transpose ())) / (input_length * target_length * dimensions);
   }
 
-  float sigma_squared_init = sigma_squared;
+  float sigma_squared_init = sigma_squared_;
 
   // initialize the rotation matrix and scaling coefficient
-  Eigen::MatrixXf rot_matrix = MatrixXf::Identity(dimensions, dimensions);
+  Eigen::MatrixXf rot_matrix = Eigen::MatrixXf::Identity(dimensions, dimensions);
   float scaling = 1.0f;
   int iteration = 0;
   float new_tolerance = tolerance_ + 10.0f;
+  float new_likelihood = 0;
+  float old_likelihood;
+  
+  Eigen::VectorXf target_prob_sum (target_length); // Pt1
+  Eigen::VectorXf input_prob_sum (input_length); // P1
+  Eigen::VectorXf input_prob (input_length);  // PX
+  std::vector <float> cur_point (dimensions); // temp_x
+
+  float last_sigma_squared = sigma_squared_;
 
   // loop until convergence
-  while ((iteration++ < max_iterations_) && (new_tolerance > tolerance_) && (sigma_squared > 10*std::numeric_limits<float>::epsilon()))
+  while ((iteration++ < max_iterations_) && (new_tolerance > tolerance_) && (sigma_squared_ > 10*std::numeric_limits<float>::epsilon ()))
   {
 
+    // clear our probability vectors
+    target_prob_sum.setZero ();
+    input_prob_sum.setZero ();
+    input_prob.setZero ();
+    input_centered.setZero ();
 
-  }
-    // calculate transformation
+    // save the previous likelihood estimate
+    old_likelihood = new_likelihood;
 
-    // apply transformation
-
-
-
-
-
-
-
-
-
-
-
-
-  // Point cloud containing the correspondences of each point in <input, indices>
-  PointCloudSourcePtr input_transformed (new PointCloudSource);
-
-  nr_iterations_ = 0;
-  converged_ = false;
-
-  // Initialise final transformation to the guessed one
-  final_transformation_ = guess;
-
-  // If the guessed transformation is non identity
-  if (guess != Matrix4::Identity ())
-  {
-    input_transformed->resize (input_->size ());
-     // Apply guessed transformation prior to search for neighbours
-    transformCloud (*input_, *input_transformed, guess);
-  }
-  else
-    *input_transformed = *input_;
- 
-  transformation_ = Matrix4::Identity ();
-
-  // Make blobs if necessary
-  determineRequiredBlobData ();
-  PCLPointCloud2::Ptr target_blob (new PCLPointCloud2);
-  if (need_target_blob_)
-    pcl::toPCLPointCloud2 (*target_, *target_blob);
-
-  // Pass in the default target for the Correspondence Estimation/Rejection code
-  correspondence_estimation_->setInputTarget (target_);
-  if (correspondence_estimation_->requiresTargetNormals ())
-    correspondence_estimation_->setTargetNormals (target_blob);
-  // Correspondence Rejectors need a binary blob
-  for (size_t i = 0; i < correspondence_rejectors_.size (); ++i)
-  {
-    registration::CorrespondenceRejector::Ptr& rej = correspondence_rejectors_[i];
-    if (rej->requiresTargetPoints ())
-      rej->setTargetPoints (target_blob);
-    if (rej->requiresTargetNormals () && target_has_normals_)
-      rej->setTargetNormals (target_blob);
-  }
-
-  convergence_criteria_->setMaximumIterations (max_iterations_);
-  convergence_criteria_->setRelativeMSE (euclidean_fitness_epsilon_);
-  convergence_criteria_->setTranslationThreshold (transformation_epsilon_);
-  convergence_criteria_->setRotationThreshold (1.0 - transformation_epsilon_);
-
-  // Repeat until convergence
-  do
-  {
-    // Get blob data if needed
-    PCLPointCloud2::Ptr input_transformed_blob;
-    if (need_source_blob_)
+    // Expectation Step
+    if (use_fgt_)
     {
-      input_transformed_blob.reset (new PCLPointCloud2);
-      toPCLPointCloud2 (*input_transformed, *input_transformed_blob);
+      return;
     }
-    // Save the previously estimated transformation
-    previous_transformation_ = transformation_;
-
-    // Set the source each iteration, to ensure the dirty flag is updated
-    correspondence_estimation_->setInputSource (input_transformed);
-    if (correspondence_estimation_->requiresSourceNormals ())
-      correspondence_estimation_->setSourceNormals (input_transformed_blob);
-    // Estimate correspondences
-    if (use_reciprocal_correspondence_)
-      correspondence_estimation_->determineReciprocalCorrespondences (*correspondences_, corr_dist_threshold_);
     else
-      correspondence_estimation_->determineCorrespondences (*correspondences_, corr_dist_threshold_);
-
-    //if (correspondence_rejectors_.empty ())
-    CorrespondencesPtr temp_correspondences (new Correspondences (*correspondences_));
-    for (size_t i = 0; i < correspondence_rejectors_.size (); ++i)
     {
-      registration::CorrespondenceRejector::Ptr& rej = correspondence_rejectors_[i];
-      PCL_DEBUG ("Applying a correspondence rejector method: %s.\n", rej->getClassName ().c_str ());
-      if (rej->requiresSourcePoints ())
-        rej->setSourcePoints (input_transformed_blob);
-      if (rej->requiresSourceNormals () && source_has_normals_)
-        rej->setSourceNormals (input_transformed_blob);
-      rej->setInputCorrespondences (temp_correspondences);
-      rej->getCorrespondences (*correspondences_);
-      // Modify input for the next iteration
-      if (i < correspondence_rejectors_.size () - 1)
-        *temp_correspondences = *correspondences_;
+
+      float ksig = -2.0 * sigma_squared_;
+      float outlier = (outlier_weight_ * input_length * std::pow (-ksig * M_PI, 0.5 * dimensions)) / ((1.0 - outlier_weight_) * target_length);
+        
+      // reset our likelihood estimate
+      new_likelihood = 0.0f;
+
+      // for each point in the target set
+      for (int n = 0; n < target_length; ++n) 
+      {
+      
+        float prob_sum = 0.0;
+
+        // for each point in the input set
+        for (int m = 0; m < input_length; ++m) 
+        {
+          float dist_squared = 0.0;
+          
+          // for each dimension (x, y, z)
+          for (int d = 0; d < dimensions; ++d) 
+          {
+            float diff = target_matrix (d, n) - output_matrix (d, m);  
+            diff = diff * diff;
+            dist_squared += diff;
+          }
+          
+          input_prob (m) = std::exp (dist_squared / ksig);
+          prob_sum += input_prob (m);
+        }
+      
+        prob_sum += outlier;
+      
+        target_prob_sum (n) = 1 - (outlier / prob_sum);
+      
+        // for each dimension
+        for (int d = 0; d < dimensions; ++d) 
+        {
+          cur_point[d] = target_matrix (d, n) / prob_sum;
+        }
+      
+        // for each point in the input set
+        for (int m = 0; m < input_length; ++m) 
+        {
+         
+          input_prob_sum (m) += input_prob (m) / prob_sum;
+          
+          // for each dimension
+          for (int d = 0; d < dimensions; ++d) 
+          {
+            input_centered (d, m) += cur_point[d] * input_prob[m];
+          }
+        }
+      
+        new_likelihood += -std::log (prob_sum);     
+      }
+
+      new_likelihood += (float)dimensions * (float)target_length * std::log (sigma_squared_) / 2.0f;
     }
 
-    size_t cnt = correspondences_->size ();
-    // Check whether we have enough correspondences
-    if (static_cast<int> (cnt) < min_number_correspondences_)
+    // keep track of the % change in likelihood
+    new_tolerance = std::abs ((new_likelihood - old_likelihood) / new_likelihood);
+
+    // precompute
+    float target_prob_total = target_prob_sum.sum ();
+    Eigen::VectorXf mu_x = target_matrix * target_prob_sum / target_prob_total;
+    Eigen::VectorXf mu_y = input_matrix * input_prob_sum / target_prob_total;
+
+    // solve for rotation, scaling, translation and sigma_squared
+    Eigen::MatrixXf transform_matrix = input_centered * input_matrix.transpose () - target_prob_total * (mu_x * mu_y.transpose ());
+
+    Eigen::JacobiSVD <Eigen::MatrixXf> svd (transform_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    
+    Eigen::MatrixXf c_matrix = Eigen::MatrixXf::Identity(dimensions, dimensions);
+
+    if (use_strict_rotation_)
+      c_matrix (dimensions-1, dimensions-1) = (svd.matrixU () * svd.matrixV ().transpose ()).determinant ();
+
+    rot_matrix = svd.matrixU () * c_matrix * svd.matrixV ().transpose ();
+
+    last_sigma_squared = sigma_squared_;
+
+    float scale = 1.0;
+    if (estimate_scaling_)
     {
-      PCL_ERROR ("[pcl::%s::computeTransformation] Not enough correspondences found. Relax your threshold parameters.\n", getClassName ().c_str ());
-      convergence_criteria_->setConvergenceState(pcl::registration::DefaultConvergenceCriteria<Scalar>::CONVERGENCE_CRITERIA_NO_CORRESPONDENCES);
-      converged_ = false;
-      break;
+      float t1 = (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+      float t2 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+      float t3 = target_prob_total * (float)(mu_y.transpose () * mu_y);
+      scale = t1 / (t2 - t3);
+
+      t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+      t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
+      t3 = scale * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+      sigma_squared_ = std::abs(t1 - t2 - t3) / (target_prob_total * dimensions);
+    }
+    else
+    {
+      float t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+      float t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
+      float t3 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+      float t4 = target_prob_total * (float)(mu_y.transpose () * mu_y);
+      float t5 = 2 * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+      sigma_squared_ = std::abs((t1 - t2 + t3 - t4 - t5) / (target_prob_total * dimensions));
     }
 
-    // Estimate the transform
-    transformation_estimation_->estimateRigidTransformation (*input_transformed, *target_, *correspondences_, transformation_);
+    Eigen::VectorXf trans = mu_x - scale * rot_matrix * mu_y;
 
-    // Tranform the data
-    transformCloud (*input_transformed, *input_transformed, transformation_);
-
-    // Obtain the final transformation    
-    final_transformation_ = transformation_ * final_transformation_;
-
-    ++nr_iterations_;
-
-    // Update the vizualization of icp convergence
-    //if (update_visualizer_ != 0)
-    //  update_visualizer_(output, source_indices_good, *target_, target_indices_good );
-
-    converged_ = static_cast<bool> ((*convergence_criteria_));
+    // update the GMM centroids
+    output_matrix = scale * rot_matrix * input_matrix + trans.replicate (1, input_length);
+    
   }
-  while (!converged_);
 
-  // Transform the input cloud using the final transformation
-  PCL_DEBUG ("Transformation is:\n\t%5f\t%5f\t%5f\t%5f\n\t%5f\t%5f\t%5f\t%5f\n\t%5f\t%5f\t%5f\t%5f\n\t%5f\t%5f\t%5f\t%5f\n", 
-      final_transformation_ (0, 0), final_transformation_ (0, 1), final_transformation_ (0, 2), final_transformation_ (0, 3),
-      final_transformation_ (1, 0), final_transformation_ (1, 1), final_transformation_ (1, 2), final_transformation_ (1, 3),
-      final_transformation_ (2, 0), final_transformation_ (2, 1), final_transformation_ (2, 2), final_transformation_ (2, 3),
-      final_transformation_ (3, 0), final_transformation_ (3, 1), final_transformation_ (3, 2), final_transformation_ (3, 3));
-
-  // Copy all the values
-  output = *input_;
-  // Transform the XYZ + normals
-  transformCloud (*input_, output, final_transformation_);
+  // copy output matrix to output point cloud
+  for (int i = 0; i < input_length; ++i)
+  {
+    output.points[i].x = output_matrix (0, i);
+    output.points[i].y = output_matrix (1, i);
+    output.points[i].z = output_matrix (2, i);
+  }
 }
 
 #endif /* PCL_REGISTRATION_IMPL_CPD_HPP_ */

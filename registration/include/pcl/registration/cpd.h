@@ -132,11 +132,16 @@ namespace pcl
 
       /** \brief Empty constructor. */
       CoherentPointDrift () 
-        : sigma_squared (-1)
+        : sigma_squared_ (-1)
         , tolerance_ (1.0e-5)
-        , max_iterations_ (150)
+        , use_fgt_ (false)
+        , outlier_weight_ (0.1f)
+        , use_strict_rotation_ (true)
+        , estimate_scaling_ (true)
+        , normalize_ (true)
       {
         reg_name_ = "CoherentPointDrift";
+        max_iterations_ = 150;
       };
 
       /** \brief Empty destructor */
@@ -155,10 +160,34 @@ namespace pcl
       getTolerance () const { return (tolerance_); }
 
       inline void
-      setMaxIterations (int max_iterations) { max_iterations_ = max_iterations; }
+      setUseFgt (int use_fgt) { use_fgt_ = use_fgt; }
 
-      inline int
-      getMaxIterations () const { return (max_iterations_); }
+      inline bool
+      getUseFgt () const { return (use_fgt_); }
+
+      inline void
+      setOutlierWeight (float outlier_weight) { outlier_weight_ = outlier_weight; }
+
+      inline float
+      getOutlierWeight () const { return (outlier_weight_); }
+
+      inline void
+      setUseStrictRotation (int use_strict_rotation) { use_strict_rotation_ = use_strict_rotation; }
+
+      inline bool
+      getUseStrictRotation () const { return (use_strict_rotation_); }
+
+      inline void
+      setEstimateScaling (int estimate_scaling) { estimate_scaling_ = estimate_scaling; }
+
+      inline bool
+      getEstimateScaling () const { return (estimate_scaling_); }
+
+      inline void
+      setNormalize (int normalize) { normalize_ = normalize; }
+
+      inline bool
+      getNormalize () const { return (normalize_); }
 
     protected:
 
@@ -171,7 +200,11 @@ namespace pcl
 
       float sigma_squared_;
       float tolerance_;
-      int max_iterations_;
+      bool use_fgt_;
+      float outlier_weight_;
+      bool use_strict_rotation_;
+      bool estimate_scaling_;
+      bool normalize_;
   };
 }
 
