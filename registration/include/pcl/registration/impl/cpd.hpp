@@ -78,8 +78,8 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
     target_matrix (2, i) = target_->points[i].z;
   }
 
-  Eigen::MatrixXf input_mean (dimensions, dimensions);
-  Eigen::MatrixXf target_mean (dimensions, dimensions);
+  Eigen::MatrixXf input_mean (dimensions, 1);
+  Eigen::MatrixXf target_mean (dimensions, 1);
   input_mean.setZero ();
   target_mean.setZero ();
 
@@ -89,8 +89,9 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
   // normalize to zero mean and unit variance
   if (normalize_)
   {
+    // we lose some precision here due to the use of float over double
     input_mean = input_matrix.rowwise ().mean ();
-    Eigen::MatrixXf target_mean = target_matrix.rowwise ().mean ();
+    target_mean = target_matrix.rowwise ().mean ();
 
     input_matrix = input_matrix - input_mean.replicate (1, input_length);
     target_matrix = target_matrix - target_mean.replicate (1, target_length);
@@ -127,6 +128,8 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
   std::vector <float> cur_point (dimensions); // temp_x
 
   float last_sigma_squared = sigma_squared_;
+  float scale;
+  Eigen::VectorXf trans;
 
   // loop until convergence
   while ((iteration++ < max_iterations_) && (new_tolerance > tolerance_) && (sigma_squared_ > 10*std::numeric_limits<float>::epsilon ()))
@@ -229,7 +232,7 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
 
     last_sigma_squared = sigma_squared_;
 
-    float scale = 1.0;
+    scale = 1.0;
     if (estimate_scaling_)
     {
       float t1 = (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
@@ -252,11 +255,20 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
       sigma_squared_ = std::abs((t1 - t2 + t3 - t4 - t5) / (target_prob_total * dimensions));
     }
 
-    Eigen::VectorXf trans = mu_x - scale * rot_matrix * mu_y;
+    trans = mu_x - scale * rot_matrix * mu_y;
 
     // update the GMM centroids
     output_matrix = scale * rot_matrix * input_matrix + trans.replicate (1, input_length);
     
+  }
+
+  // denormalize
+  if (normalize_)
+  {
+    scale = scale * target_scale / input_scale;
+    trans = target_scale * trans + target_mean - scale * (rot_matrix * input_mean);
+    Eigen::MatrixXf tmp = target_mean.replicate (1, input_length);
+    output_matrix = output_matrix * target_scale + target_mean.replicate (1, input_length);
   }
 
   // copy output matrix to output point cloud

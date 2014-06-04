@@ -61,6 +61,18 @@ TEST (CPD, CoherentPointDrift)
 
   // Register
   reg.align (cloud_reg);
+
+  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/output.dat", "wb");
+  
+  for (int i = 0; i < cloud_reg.size (); i++)
+  {
+    fwrite (&cloud_reg[i].x, sizeof(float), 1, fp);
+    fwrite (&cloud_reg[i].y, sizeof(float), 1, fp);
+    fwrite (&cloud_reg[i].z, sizeof(float), 1, fp);
+  }
+
+  fclose (fp);
+
   EXPECT_EQ (int (cloud_reg.points.size ()), int (cloud_source.points.size ()));
 }
 
@@ -68,8 +80,6 @@ TEST (CPD, CoherentPointDrift)
 int
 main (int argc, char** argv)
 {
-  int low = -100;
-  int high = 100;
 
   FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/input.dat", "rb");
 
