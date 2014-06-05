@@ -47,22 +47,24 @@ using namespace pcl;
 using namespace pcl::io;
 using namespace std;
 
-PointCloud<PointXYZ> cloud_source, cloud_target, cloud_reg;
+PointCloud<PointXYZ> cloud_source_rigid, cloud_target_rigid, cloud_reg;
+PointCloud<PointXYZ> cloud_source_affine, cloud_target_affine;
 PointCloud<PointXYZRGBA> cloud_with_color;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-TEST (CPD, CoherentPointDrift)
+TEST (CPD_RIGID, CoherentPointDrift)
 {
   CoherentPointDrift<PointXYZ, PointXYZ> reg;
-  PointCloud<PointXYZ>::ConstPtr source (cloud_source.makeShared ());
+  PointCloud<PointXYZ>::ConstPtr source (cloud_source_rigid.makeShared ());
 
   reg.setInputSource (source);
-  reg.setInputTarget (cloud_target.makeShared ());
+  reg.setInputTarget (cloud_target_rigid.makeShared ());
+  reg.setRegistrationMode(reg.RM_RIGID);
 
   // Register
   reg.align (cloud_reg);
 
-  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/output.dat", "wb");
+  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/output-rigid.dat", "wb");
   
   for (int i = 0; i < cloud_reg.size (); i++)
   {
@@ -73,7 +75,34 @@ TEST (CPD, CoherentPointDrift)
 
   fclose (fp);
 
-  EXPECT_EQ (int (cloud_reg.points.size ()), int (cloud_source.points.size ()));
+  EXPECT_EQ (int (cloud_reg.points.size ()), int (cloud_source_rigid.points.size ()));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TEST (CPD_AFFINE, CoherentPointDrift)
+{
+  CoherentPointDrift<PointXYZ, PointXYZ> reg;
+  PointCloud<PointXYZ>::ConstPtr source (cloud_source_affine.makeShared ());
+
+  reg.setInputSource (source);
+  reg.setInputTarget (cloud_target_affine.makeShared ());
+  reg.setRegistrationMode(reg.RM_AFFINE);
+
+  // Register
+  reg.align (cloud_reg);
+
+  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/output-affine.dat", "wb");
+  
+  for (int i = 0; i < cloud_reg.size (); i++)
+  {
+    fwrite (&cloud_reg[i].x, sizeof(float), 1, fp);
+    fwrite (&cloud_reg[i].y, sizeof(float), 1, fp);
+    fwrite (&cloud_reg[i].z, sizeof(float), 1, fp);
+  }
+
+  fclose (fp);
+
+  EXPECT_EQ (int (cloud_reg.points.size ()), int (cloud_source_affine.points.size ()));
 }
 
 /* ---[ */
@@ -81,35 +110,68 @@ int
 main (int argc, char** argv)
 {
 
-  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/input.dat", "rb");
+  FILE* fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/input-rigid.dat", "rb");
 
-  cloud_source.height = 1;
-  cloud_source.width = 91;
-  cloud_source.is_dense = true;
-  cloud_source.resize (91);
+  cloud_source_rigid.height = 1;
+  cloud_source_rigid.width = 91;
+  cloud_source_rigid.is_dense = true;
+  cloud_source_rigid.resize (91);
 
-  for (int i = 0; i < cloud_source.size (); i++)
+  for (int i = 0; i < cloud_source_rigid.size (); i++)
   {
-    fread (&cloud_source[i].x, sizeof(float), 1, fp);
-    fread (&cloud_source[i].y, sizeof(float), 1, fp);
-    cloud_source[i].z = 0;
+    fread (&cloud_source_rigid[i].x, sizeof(float), 1, fp);
+    fread (&cloud_source_rigid[i].y, sizeof(float), 1, fp);
+    cloud_source_rigid[i].z = 0;
   }
 
   fclose (fp);
 
 
-  fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/target.dat", "rb");
+  fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/target-rigid.dat", "rb");
 
-  cloud_target.height = 1;
-  cloud_target.width = 91;
-  cloud_target.is_dense = true;
-  cloud_target.resize (91);
+  cloud_target_rigid.height = 1;
+  cloud_target_rigid.width = 91;
+  cloud_target_rigid.is_dense = true;
+  cloud_target_rigid.resize (91);
 
-  for (int i = 0; i < cloud_target.size (); i++)
+  for (int i = 0; i < cloud_target_rigid.size (); i++)
   {
-    fread (&cloud_target[i].x, sizeof(float), 1, fp);
-    fread (&cloud_target[i].y, sizeof(float), 1, fp);
-    cloud_target[i].z = 0;
+    fread (&cloud_target_rigid[i].x, sizeof(float), 1, fp);
+    fread (&cloud_target_rigid[i].y, sizeof(float), 1, fp);
+    cloud_target_rigid[i].z = 0;
+  }
+
+  fclose (fp);
+
+  fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/input-affine.dat", "rb");
+
+  cloud_source_affine.height = 1;
+  cloud_source_affine.width = 91;
+  cloud_source_affine.is_dense = true;
+  cloud_source_affine.resize (91);
+
+  for (int i = 0; i < cloud_source_affine.size (); i++)
+  {
+    fread (&cloud_source_affine[i].x, sizeof(float), 1, fp);
+    fread (&cloud_source_affine[i].y, sizeof(float), 1, fp);
+    cloud_source_affine[i].z = 0;
+  }
+
+  fclose (fp);
+
+
+  fp = fopen ("C:/Projects/lidar/Code/third_party/CoherentPointDrift/target-affine.dat", "rb");
+
+  cloud_target_affine.height = 1;
+  cloud_target_affine.width = 91;
+  cloud_target_affine.is_dense = true;
+  cloud_target_affine.resize (91);
+
+  for (int i = 0; i < cloud_target_affine.size (); i++)
+  {
+    fread (&cloud_target_affine[i].x, sizeof(float), 1, fp);
+    fread (&cloud_target_rigid[i].y, sizeof(float), 1, fp);
+    cloud_target_affine[i].z = 0;
   }
 
   fclose (fp);

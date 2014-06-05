@@ -116,19 +116,24 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
 
   // initialize the rotation matrix and scaling coefficient
   Eigen::MatrixXf rot_matrix = Eigen::MatrixXf::Identity(dimensions, dimensions);
-  float scaling = 1.0f;
+  Eigen::MatrixXf B;
   int iteration = 0;
   float new_tolerance = tolerance_ + 10.0f;
-  float new_likelihood = 0;
+  float new_likelihood;
   float old_likelihood;
   
+  if (registration_mode_ == RM_RIGID)
+    new_likelihood = 0.0f;
+  else
+    new_likelihood = 1.0f;
+
   Eigen::VectorXf target_prob_sum (target_length); // Pt1
   Eigen::VectorXf input_prob_sum (input_length); // P1
-  Eigen::VectorXf input_prob (input_length);  // PX
+  Eigen::VectorXf input_prob (input_length);
   std::vector <float> cur_point (dimensions); // temp_x
 
   float last_sigma_squared = sigma_squared_;
-  float scale;
+  float scale = 1;
   Eigen::VectorXf trans;
 
   // loop until convergence
@@ -147,6 +152,7 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
     // Expectation Step
     if (use_fgt_)
     {
+      // TODO: Implement FGT
       return;
     }
     else
@@ -221,45 +227,71 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
     // solve for rotation, scaling, translation and sigma_squared
     Eigen::MatrixXf transform_matrix = input_centered * input_matrix.transpose () - target_prob_total * (mu_x * mu_y.transpose ());
 
-    Eigen::JacobiSVD <Eigen::MatrixXf> svd (transform_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
-    
-    Eigen::MatrixXf c_matrix = Eigen::MatrixXf::Identity(dimensions, dimensions);
-
-    if (use_strict_rotation_)
-      c_matrix (dimensions-1, dimensions-1) = (svd.matrixU () * svd.matrixV ().transpose ()).determinant ();
-
-    rot_matrix = svd.matrixU () * c_matrix * svd.matrixV ().transpose ();
-
-    last_sigma_squared = sigma_squared_;
-
-    scale = 1.0;
-    if (estimate_scaling_)
+    if (registration_mode_ == RM_RIGID)
     {
-      float t1 = (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
-      float t2 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
-      float t3 = target_prob_total * (float)(mu_y.transpose () * mu_y);
-      scale = t1 / (t2 - t3);
 
-      t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
-      t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
-      t3 = scale * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
-      sigma_squared_ = std::abs(t1 - t2 - t3) / (target_prob_total * dimensions);
-    }
-    else
-    {
-      float t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
-      float t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
-      float t3 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
-      float t4 = target_prob_total * (float)(mu_y.transpose () * mu_y);
-      float t5 = 2 * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
-      sigma_squared_ = std::abs((t1 - t2 + t3 - t4 - t5) / (target_prob_total * dimensions));
-    }
-
-    trans = mu_x - scale * rot_matrix * mu_y;
-
-    // update the GMM centroids
-    output_matrix = scale * rot_matrix * input_matrix + trans.replicate (1, input_length);
+      Eigen::JacobiSVD <Eigen::MatrixXf> svd (transform_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
     
+      Eigen::MatrixXf c_matrix = Eigen::MatrixXf::Identity(dimensions, dimensions);
+
+      if (use_strict_rotation_)
+        c_matrix (dimensions-1, dimensions-1) = (svd.matrixU () * svd.matrixV ().transpose ()).determinant ();
+
+      rot_matrix = svd.matrixU () * c_matrix * svd.matrixV ().transpose ();
+
+      last_sigma_squared = sigma_squared_;
+
+      if (estimate_scaling_)
+      {
+        float t1 = (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+        float t2 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+        float t3 = target_prob_total * (float)(mu_y.transpose () * mu_y);
+        scale = t1 / (t2 - t3);
+
+        t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+        t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
+        t3 = scale * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+        sigma_squared_ = std::abs(t1 - t2 - t3) / (target_prob_total * dimensions);
+      }
+      else
+      {
+        float t1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+        float t2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
+        float t3 = ((input_matrix.array ().square ().matrix () * input_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+        float t4 = target_prob_total * (float)(mu_y.transpose () * mu_y);
+        float t5 = 2 * (svd.singularValues ().matrix ().transpose () * c_matrix).sum ();
+        sigma_squared_ = std::abs((t1 - t2 + t3 - t4 - t5) / (target_prob_total * dimensions));
+      }
+
+      trans = mu_x - scale * rot_matrix * mu_y;
+
+      // update the GMM centroids
+      output_matrix = scale * rot_matrix * input_matrix + trans.replicate (1, input_length);
+    }
+    else if (registration_mode_ == RM_AFFINE)
+    {
+      //B2=(Y.*repmat(P1,1,D))'*Y-Np*(mu_y*mu_y');
+      Eigen::MatrixXf t1 = (input_matrix.transpose ().cwiseProduct (input_prob_sum.replicate (1, dimensions))).transpose () * input_matrix.transpose ();
+      Eigen::MatrixXf t2 = target_prob_total * (mu_y * mu_y.transpose ());
+      Eigen::MatrixXf B2 = t1 - t2;
+      
+      //B=B1/B2; % B= B1 * inv(B2);
+      B = transform_matrix * B2.inverse ();
+
+      last_sigma_squared = sigma_squared_;
+
+      //sigma2=abs(sum(sum(X.^2.*repmat(Pt1,1,D)))- Np*(mu_x'*mu_x) -trace(B1*B'))/(Np*D); 
+      output_matrix = scale * rot_matrix * input_matrix + trans.replicate (1, input_length);
+      float f1 = ((target_matrix.array ().square ().matrix () * target_prob_sum.replicate (dimensions, 1)).colwise ().sum ()).sum();
+      float f2 = target_prob_total * (float)(mu_x.transpose () * mu_x);
+      float f3 = (transform_matrix.transpose () * B).trace ();
+      sigma_squared_ = std::abs(f1 - f2 - f3) / (target_prob_total * dimensions);
+
+      trans = mu_x - B * mu_y;
+
+      // update the GMM centroids
+      output_matrix = input_matrix * B.transpose () + trans.replicate (1, input_length);
+    }
   }
 
   // denormalize
@@ -269,6 +301,12 @@ pcl::CoherentPointDrift<PointSource, PointTarget, Scalar>::computeTransformation
     trans = target_scale * trans + target_mean - scale * (rot_matrix * input_mean);
     Eigen::MatrixXf tmp = target_mean.replicate (1, input_length);
     output_matrix = output_matrix * target_scale + target_mean.replicate (1, input_length);
+
+    if (registration_mode_ == RM_AFFINE)
+    {
+      rot_matrix = scale * B;
+      scale = 1.0f;
+    }
   }
 
   // copy output matrix to output point cloud

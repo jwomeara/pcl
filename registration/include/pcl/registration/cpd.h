@@ -94,6 +94,15 @@ namespace pcl
   class CoherentPointDrift : public Registration<PointSource, PointTarget, Scalar>
   {
     public:
+
+      typedef enum RegistrationMode
+      {
+        RM_RIGID    = 0,
+        RM_AFFINE   = 1, 
+        RM_NONRIGID = 2, 
+        LT_LENGTH   = 3
+      } RegistrationMode;
+
       typedef typename Registration<PointSource, PointTarget, Scalar>::PointCloudSource PointCloudSource;
       typedef typename PointCloudSource::Ptr PointCloudSourcePtr;
       typedef typename PointCloudSource::ConstPtr PointCloudSourceConstPtr;
@@ -139,6 +148,7 @@ namespace pcl
         , use_strict_rotation_ (true)
         , estimate_scaling_ (true)
         , normalize_ (true)
+        , registration_mode_ (RM_RIGID)
       {
         reg_name_ = "CoherentPointDrift";
         max_iterations_ = 150;
@@ -160,7 +170,7 @@ namespace pcl
       getTolerance () const { return (tolerance_); }
 
       inline void
-      setUseFgt (int use_fgt) { use_fgt_ = use_fgt; }
+      setUseFgt (bool use_fgt) { use_fgt_ = use_fgt; }
 
       inline bool
       getUseFgt () const { return (use_fgt_); }
@@ -172,22 +182,28 @@ namespace pcl
       getOutlierWeight () const { return (outlier_weight_); }
 
       inline void
-      setUseStrictRotation (int use_strict_rotation) { use_strict_rotation_ = use_strict_rotation; }
+      setUseStrictRotation (bool use_strict_rotation) { use_strict_rotation_ = use_strict_rotation; }
 
       inline bool
       getUseStrictRotation () const { return (use_strict_rotation_); }
 
       inline void
-      setEstimateScaling (int estimate_scaling) { estimate_scaling_ = estimate_scaling; }
+      setEstimateScaling (bool estimate_scaling) { estimate_scaling_ = estimate_scaling; }
 
       inline bool
       getEstimateScaling () const { return (estimate_scaling_); }
 
       inline void
-      setNormalize (int normalize) { normalize_ = normalize; }
+      setNormalize (bool normalize) { normalize_ = normalize; }
 
       inline bool
       getNormalize () const { return (normalize_); }
+
+      inline void
+      setRegistrationMode (RegistrationMode registration_mode) { registration_mode_ = registration_mode; }
+
+      inline RegistrationMode
+      getRegistrationMode () const { return (registration_mode_); }
 
     protected:
 
@@ -205,6 +221,7 @@ namespace pcl
       bool use_strict_rotation_;
       bool estimate_scaling_;
       bool normalize_;
+      RegistrationMode registration_mode_;
   };
 }
 
